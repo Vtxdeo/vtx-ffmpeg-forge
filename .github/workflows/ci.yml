@@ -1,0 +1,20 @@
+name: vtx-ffmpeg-forge CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Zig
+        uses: ziglang/setup-zig@v1
+        with:
+          version: 0.15.2
+
+      - name: Run logic-layer tests
+        run: zig build test

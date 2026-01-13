@@ -1,0 +1,5 @@
+.{
+    .name = "vtx-ffmpeg-forge",
+    .version = "0.1.0",
+    .dependencies = .{},
+}
