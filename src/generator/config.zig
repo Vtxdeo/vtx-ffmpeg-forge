@@ -1,14 +1,14 @@
 const std = @import("std");
-const core = @import("../core/profile.zig");
-const rules = @import("../core/rules.zig");
+const core = @import("core_profile");
+const rules = @import("core_rules");
 
 pub fn generateConfigureArgs(
     allocator: std.mem.Allocator,
     profile: core.Profile,
     target: std.Target,
 ) ![]const []const u8 {
-    var args = std.ArrayList([]const u8).init(allocator);
-    errdefer args.deinit();
+    var args = std.ArrayList([]const u8).empty;
+    errdefer args.deinit(allocator);
 
     const adjusted = rules.applyTargetRules(profile, target);
 
@@ -16,25 +16,25 @@ pub fn generateConfigureArgs(
         return error.InvalidProfile;
     }
 
-    try args.append("--disable-everything");
+    try args.append(allocator, "--disable-everything");
 
     if (adjusted.enable_asm) {
-        try args.append("--enable-asm");
+        try args.append(allocator, "--enable-asm");
     } else {
-        try args.append("--disable-asm");
+        try args.append(allocator, "--disable-asm");
     }
 
     for (adjusted.enabled_decoders) |decoder| {
-        try args.append(core.codecToConfigureFlag(decoder));
+        try args.append(allocator, core.codecToConfigureFlag(decoder));
     }
 
     for (adjusted.enabled_filters) |filter| {
-        try args.append(core.filterToConfigureFlag(filter));
+        try args.append(allocator, core.filterToConfigureFlag(filter));
     }
 
     for (adjusted.extra_flags) |flag| {
-        try args.append(flag);
+        try args.append(allocator, flag);
     }
 
-    return args.toOwnedSlice();
+    return args.toOwnedSlice(allocator);
 }

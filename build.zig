@@ -6,10 +6,47 @@ pub fn build(b: *std.Build) void {
 
     _ = b.option([]const u8, "profile", "Profile name (nano/full)") orelse "nano";
 
-    const tests = b.addTest(.{
-        .root_source_file = .{ .path = "tests/generator_test.zig" },
+    const core_profile_module = b.createModule(.{
+        .root_source_file = b.path("src/core/profile.zig"),
         .target = target,
         .optimize = optimize,
+    });
+    const core_rules_module = b.createModule(.{
+        .root_source_file = b.path("src/core/rules.zig"),
+        .imports = &.{
+            .{ .name = "core_profile", .module = core_profile_module },
+        },
+        .target = target,
+        .optimize = optimize,
+    });
+    const config_module = b.createModule(.{
+        .root_source_file = b.path("src/generator/config.zig"),
+        .imports = &.{
+            .{ .name = "core_profile", .module = core_profile_module },
+            .{ .name = "core_rules", .module = core_rules_module },
+        },
+        .target = target,
+        .optimize = optimize,
+    });
+    const nano_module = b.createModule(.{
+        .root_source_file = b.path("src/presets/nano.zig"),
+        .imports = &.{
+            .{ .name = "core_profile", .module = core_profile_module },
+        },
+        .target = target,
+        .optimize = optimize,
+    });
+    const test_module = b.createModule(.{
+        .root_source_file = b.path("tests/generator_test.zig"),
+        .imports = &.{
+            .{ .name = "config", .module = config_module },
+            .{ .name = "nano", .module = nano_module },
+        },
+        .target = target,
+        .optimize = optimize,
+    });
+    const tests = b.addTest(.{
+        .root_module = test_module,
     });
 
     const test_step = b.step("test", "Run logic-layer tests");

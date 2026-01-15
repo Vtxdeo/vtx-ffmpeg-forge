@@ -1,4 +1,4 @@
-const core = @import("../core/profile.zig");
+const core = @import("core_profile");
 
 pub fn get() core.Profile {
     return .{

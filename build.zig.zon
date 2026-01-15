@@ -1,5 +1,13 @@
 .{
-    .name = "vtx-ffmpeg-forge",
+    .name = .vtx_ffmpeg_forge,
     .version = "0.1.0",
+    .fingerprint = 0xaef06f715692e879,
+    .minimum_zig_version = "0.15.2",
     .dependencies = .{},
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "tests",
+    },
 }
