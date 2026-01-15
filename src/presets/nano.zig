@@ -6,5 +6,6 @@ pub fn get() core.Profile {
         .enabled_filters = &.{ .scale },
         .extra_flags = &.{ "--enable-small" },
         .enable_asm = true,
+        .hardware_acceleration = false,
     };
 }

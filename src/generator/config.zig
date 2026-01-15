@@ -10,7 +10,7 @@ pub fn generateConfigureArgs(
     var args = std.ArrayList([]const u8).empty;
     errdefer args.deinit(allocator);
 
-    const adjusted = rules.applyTargetRules(profile, target);
+    const adjusted = try rules.applyTargetRules(profile, target);
 
     if (!adjusted.validate()) {
         return error.InvalidProfile;
