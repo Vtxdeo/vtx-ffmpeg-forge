@@ -36,6 +36,14 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const full_module = b.createModule(.{
+        .root_source_file = b.path("src/presets/full.zig"),
+        .imports = &.{
+            .{ .name = "core_profile", .module = core_profile_module },
+        },
+        .target = target,
+        .optimize = optimize,
+    });
     const test_module = b.createModule(.{
         .root_source_file = b.path("tests/generator_test.zig"),
         .imports = &.{
@@ -48,6 +56,23 @@ pub fn build(b: *std.Build) void {
     const tests = b.addTest(.{
         .root_module = test_module,
     });
+
+    const cli_module = b.createModule(.{
+        .root_source_file = b.path("src/cli/main.zig"),
+        .imports = &.{
+            .{ .name = "config", .module = config_module },
+            .{ .name = "core_profile", .module = core_profile_module },
+            .{ .name = "preset_nano", .module = nano_module },
+            .{ .name = "preset_full", .module = full_module },
+        },
+        .target = target,
+        .optimize = optimize,
+    });
+    const cli = b.addExecutable(.{
+        .name = "vtx-ffmpeg-forge",
+        .root_module = cli_module,
+    });
+    b.installArtifact(cli);
 
     const test_step = b.step("test", "Run logic-layer tests");
     test_step.dependOn(&tests.step);
