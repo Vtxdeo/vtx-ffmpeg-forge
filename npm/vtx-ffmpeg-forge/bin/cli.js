@@ -1,8 +1,23 @@
 #!/usr/bin/env node
 "use strict";
 
-const { spawn } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 const fs = require("node:fs");
+
+function detectLibcWithLdd() {
+  const result = spawnSync("ldd", ["--version"], { encoding: "utf8" });
+  if (result.error) {
+    return null;
+  }
+  const output = `${result.stdout || ""}${result.stderr || ""}`;
+  if (/musl/i.test(output)) {
+    return "musl";
+  }
+  if (/glibc|gnu c library|gnu libc/i.test(output)) {
+    return "glibc";
+  }
+  return null;
+}
 
 function isLinuxMusl() {
   if (process.platform !== "linux") {
@@ -15,6 +30,15 @@ function isLinuxMusl() {
     if (glibcVersion) {
       return false;
     }
+    return true;
+  }
+
+  const lddLibc = detectLibcWithLdd();
+  if (lddLibc === "glibc") {
+    return false;
+  }
+  if (lddLibc === "musl") {
+    return true;
   }
 
   return (
