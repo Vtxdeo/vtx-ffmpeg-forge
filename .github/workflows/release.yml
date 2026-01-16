@@ -19,23 +19,23 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            pkg: linux-x64
+            pkg: ffmpeg-forge-linux-x64
             target: x86_64-linux
             binary: vtx-ffmpeg-forge
           - os: ubuntu-latest
-            pkg: linux-musl-x64
+            pkg: ffmpeg-forge-linux-musl-x64
             target: x86_64-linux-musl
             binary: vtx-ffmpeg-forge
           - os: windows-latest
-            pkg: win32-x64
+            pkg: ffmpeg-forge-win32-x64
             target: x86_64-windows
             binary: vtx-ffmpeg-forge.exe
           - os: macos-latest
-            pkg: darwin-arm64
+            pkg: ffmpeg-forge-darwin-arm64
             target: aarch64-macos
             binary: vtx-ffmpeg-forge
           - os: macos-latest
-            pkg: darwin-x64
+            pkg: ffmpeg-forge-darwin-x64
             target: x86_64-macos
             binary: vtx-ffmpeg-forge
 
@@ -83,11 +83,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - pkg: linux-x64
-          - pkg: linux-musl-x64
-          - pkg: darwin-x64
-          - pkg: darwin-arm64
-          - pkg: win32-x64
+          - pkg: ffmpeg-forge-linux-x64
+          - pkg: ffmpeg-forge-linux-musl-x64
+          - pkg: ffmpeg-forge-darwin-x64
+          - pkg: ffmpeg-forge-darwin-arm64
+          - pkg: ffmpeg-forge-win32-x64
 
     steps:
       - name: Checkout
