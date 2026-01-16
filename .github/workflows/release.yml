@@ -208,6 +208,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: publish-main
     steps:
+      - name: Resolve workspace root
+        shell: bash
+        run: |
+          if [ -d "vtx-ffmpeg-forge" ]; then
+            echo "WORKDIR=vtx-ffmpeg-forge" >> "$GITHUB_ENV"
+          else
+            echo "WORKDIR=." >> "$GITHUB_ENV"
+          fi
+
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
