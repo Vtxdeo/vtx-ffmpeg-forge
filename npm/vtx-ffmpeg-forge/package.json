@@ -14,10 +14,10 @@
     "index.js"
   ],
   "optionalDependencies": {
-    "@vtxdeo/linux-x64": "0.1.9",
-    "@vtxdeo/linux-musl-x64": "0.1.9",
-    "@vtxdeo/darwin-x64": "0.1.9",
-    "@vtxdeo/darwin-arm64": "0.1.9",
-    "@vtxdeo/win32-x64": "0.1.9"
+    "@vtxdeo/ffmpeg-forge-linux-x64": "0.1.10",
+    "@vtxdeo/ffmpeg-forge-linux-musl-x64": "0.1.10",
+    "@vtxdeo/ffmpeg-forge-darwin-x64": "0.1.10",
+    "@vtxdeo/ffmpeg-forge-darwin-arm64": "0.1.10",
+    "@vtxdeo/ffmpeg-forge-win32-x64": "0.1.10"
   }
 }
