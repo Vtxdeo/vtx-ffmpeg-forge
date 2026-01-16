@@ -222,6 +222,27 @@ jobs:
         with:
           path: ${{ env.WORKDIR }}/artifacts
 
+      - name: Normalize release asset names
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifacts_dir="${WORKDIR}/artifacts"
+          for pkg_dir in "$artifacts_dir"/*; do
+            [ -d "$pkg_dir" ] || continue
+            pkg="$(basename "$pkg_dir")"
+            for bin in "$pkg_dir"/*; do
+              [ -f "$bin" ] || continue
+              base="$(basename "$bin")"
+              ext=""
+              if [[ "$base" == *.exe ]]; then
+                ext=".exe"
+                base="${base%.exe}"
+              fi
+              mv "$bin" "${artifacts_dir}/${base}-${pkg}${ext}"
+            done
+            rmdir "$pkg_dir" || true
+          done
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
