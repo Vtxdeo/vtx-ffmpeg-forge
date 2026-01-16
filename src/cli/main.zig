@@ -44,7 +44,7 @@ pub fn main() !void {
     const config_path = try parseArgs(args);
     const config_raw = try std.fs.cwd().readFileAlloc(allocator, config_path, 1024 * 1024);
 
-    var parsed = try std.json.parseFromSlice(JsonConfig, allocator, config_raw, .{
+    const parsed = try std.json.parseFromSlice(JsonConfig, allocator, config_raw, .{
         .ignore_unknown_fields = true,
     });
     const cfg = parsed.value;
