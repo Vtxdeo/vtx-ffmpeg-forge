@@ -184,16 +184,6 @@ jobs:
         working-directory: ${{ env.WORKDIR }}
         run: node scripts/validate-npm-matrix.js
 
-      - name: Publish platform packages
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        shell: bash
-        working-directory: ${{ env.WORKDIR }}
-        run: |
-          for pkg in linux-x64 darwin-x64 darwin-arm64 win32-x64; do
-            (cd "npm/$pkg" && npm publish --access public --provenance)
-          done
-
       - name: Publish main package
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

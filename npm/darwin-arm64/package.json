@@ -1,6 +1,6 @@
 {
   "name": "@vtxdeo/darwin-arm64",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "The darwin-arm64 binary for vtx-ffmpeg-forge",
   "repository": {
     "type": "git",
@@ -11,6 +11,7 @@
   "main": "bin/vtx-ffmpeg-forge",
   "files": ["bin"]
 }
+
 
 
 

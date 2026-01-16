@@ -1,6 +1,6 @@
 {
   "name": "@vtxdeo/ffmpeg-forge",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Vtxdeo/vtx-ffmpeg-forge.git"
@@ -14,13 +14,14 @@
     "index.js"
   ],
   "optionalDependencies": {
-    "@vtxdeo/linux-x64": "0.1.7",
-    "@vtxdeo/linux-musl-x64": "0.1.7",
-    "@vtxdeo/darwin-x64": "0.1.7",
-    "@vtxdeo/darwin-arm64": "0.1.7",
-    "@vtxdeo/win32-x64": "0.1.7"
+    "@vtxdeo/linux-x64": "0.1.8",
+    "@vtxdeo/linux-musl-x64": "0.1.8",
+    "@vtxdeo/darwin-x64": "0.1.8",
+    "@vtxdeo/darwin-arm64": "0.1.8",
+    "@vtxdeo/win32-x64": "0.1.8"
   }
 }
+
 
 
 

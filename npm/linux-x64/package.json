@@ -1,6 +1,6 @@
 {
   "name": "@vtxdeo/linux-x64",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "The linux-x64 binary for vtx-ffmpeg-forge",
   "repository": {
     "type": "git",
@@ -11,5 +11,6 @@
   "main": "bin/vtx-ffmpeg-forge",
   "files": ["bin"]
 }
+
 
 
