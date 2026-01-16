@@ -5,6 +5,10 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
   build:
     name: Build ${{ matrix.pkg }}
@@ -54,10 +58,19 @@ jobs:
           name: ${{ matrix.pkg }}
           path: npm/${{ matrix.pkg }}/bin/${{ matrix.binary }}
 
-  publish:
-    name: Publish Release
+  publish-platform:
+    name: Publish ${{ matrix.pkg }}
     runs-on: ubuntu-latest
     needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - pkg: linux-x64
+          - pkg: darwin-x64
+          - pkg: darwin-arm64
+          - pkg: win32-x64
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,18 +81,54 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org/
 
-      - name: Download artifacts
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: ${{ matrix.pkg }}
+          path: artifacts/${{ matrix.pkg }}
 
-      - name: Stage binaries into npm packages
+      - name: Stage binary into npm package
         shell: bash
         run: |
-          for pkg in linux-x64 darwin-x64 darwin-arm64 win32-x64; do
-            mkdir -p npm/$pkg/bin
-            cp artifacts/$pkg/* npm/$pkg/bin/
+          mkdir -p npm/${{ matrix.pkg }}/bin
+          cp artifacts/${{ matrix.pkg }}/* npm/${{ matrix.pkg }}/bin/
+
+      - name: Sync npm package versions to tag
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          NPM_VERSION="$VERSION" node scripts/set-npm-versions.js
+
+      - name: Publish platform package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        shell: bash
+        run: |
+          retries=3
+          for attempt in $(seq 1 "$retries"); do
+            if npm publish --access public --silent --provenance --prefix npm/${{ matrix.pkg }}; then
+              exit 0
+            fi
+            if [ "$attempt" -lt "$retries" ]; then
+              echo "Publish failed for ${{ matrix.pkg }}. Retry $attempt/$retries..."
+              sleep 5
+            fi
           done
+          exit 1
+
+  publish-main:
+    name: Publish Main Package
+    runs-on: ubuntu-latest
+    needs: publish-platform
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
 
       - name: Sync npm package versions to tag
         shell: bash
@@ -96,13 +145,35 @@ jobs:
         shell: bash
         run: |
           for pkg in linux-x64 darwin-x64 darwin-arm64 win32-x64; do
-            npm publish --access public --silent --prefix npm/$pkg
+            npm publish --access public --silent --provenance --prefix npm/$pkg
           done
 
       - name: Publish main package
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public --silent --prefix npm/vtx-ffmpeg-forge
+        shell: bash
+        run: |
+          retries=3
+          for attempt in $(seq 1 "$retries"); do
+            if npm publish --access public --silent --provenance --prefix npm/vtx-ffmpeg-forge; then
+              exit 0
+            fi
+            if [ "$attempt" -lt "$retries" ]; then
+              echo "Publish failed for main package. Retry $attempt/$retries..."
+              sleep 5
+            fi
+          done
+          exit 1
+
+  release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    needs: publish-main
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
