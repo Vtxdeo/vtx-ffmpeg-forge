@@ -9,7 +9,7 @@ fn emit(writer: anytype, msg: []const u8) void {
 }
 
 pub fn reportError(err: anyerror) bool {
-    const stderr = std.io.getStdErr().writer();
+    const stderr = std.fs.File.stderr().writer();
     switch (err) {
         error.InvalidArgs => {
             return true;
