@@ -9,6 +9,10 @@ permissions:
   contents: write
   id-token: write
 
+defaults:
+  run:
+    working-directory: vtx-ffmpeg-forge
+
 jobs:
   build:
     name: Build ${{ matrix.pkg }}
@@ -60,7 +64,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.pkg }}
-          path: npm/${{ matrix.pkg }}/bin/${{ matrix.binary }}
+          path: vtx-ffmpeg-forge/npm/${{ matrix.pkg }}/bin/${{ matrix.binary }}
 
   publish-platform:
     name: Publish ${{ matrix.pkg }}
@@ -90,7 +94,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.pkg }}
-          path: artifacts/${{ matrix.pkg }}
+          path: vtx-ffmpeg-forge/artifacts/${{ matrix.pkg }}
 
       - name: Stage binary into npm package
         shell: bash
@@ -181,9 +185,9 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          path: vtx-ffmpeg-forge/artifacts
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*
+          files: vtx-ffmpeg-forge/artifacts/**/*

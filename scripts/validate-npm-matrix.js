@@ -29,11 +29,11 @@ if (depNames.length === 0) {
 }
 
 for (const depName of depNames) {
-  if (!depName.startsWith("@vtx-ffmpeg-forge/")) {
+  if (!depName.startsWith("@vtxdeo/")) {
     fail(`Optional dependency ${depName} has unexpected scope.`);
   }
 
-  const folder = depName.replace("@vtx-ffmpeg-forge/", "");
+  const folder = depName.replace("@vtxdeo/", "");
   const pkgPath = path.join(npmRoot, folder, "package.json");
 
   if (!fs.existsSync(pkgPath)) {

@@ -1,5 +1,5 @@
 {
-  "name": "@vtx-ffmpeg-forge/darwin-x64",
+  "name": "@vtxdeo/darwin-x64",
   "version": "0.1.0",
   "description": "The darwin-x64 binary for vtx-ffmpeg-forge",
   "os": ["darwin"],
@@ -7,3 +7,4 @@
   "main": "bin/vtx-ffmpeg-forge",
   "files": ["bin"]
 }
+

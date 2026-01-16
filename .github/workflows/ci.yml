@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+defaults:
+  run:
+    working-directory: vtx-ffmpeg-forge
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -25,9 +29,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            zig-cache
+            vtx-ffmpeg-forge/zig-cache
             ~/.cache/zig
-          key: ${{ runner.os }}-zig-${{ hashFiles('**/build.zig', '**/build.zig.zon', '**/zig.mod', '**/zig.mod.lock') }}
+          key: ${{ runner.os }}-zig-${{ hashFiles('vtx-ffmpeg-forge/**/build.zig', 'vtx-ffmpeg-forge/**/build.zig.zon', 'vtx-ffmpeg-forge/**/zig.mod', 'vtx-ffmpeg-forge/**/zig.mod.lock') }}
           restore-keys: |
             ${{ runner.os }}-zig-
 

@@ -53,15 +53,15 @@ function getPlatformPackage() {
   switch (key) {
     case "linux-x64":
       if (isLinuxMusl()) {
-        return "@vtx-ffmpeg-forge/linux-musl-x64";
+        return "@vtxdeo/linux-musl-x64";
       }
-      return "@vtx-ffmpeg-forge/linux-x64";
+      return "@vtxdeo/linux-x64";
     case "darwin-x64":
-      return "@vtx-ffmpeg-forge/darwin-x64";
+      return "@vtxdeo/darwin-x64";
     case "darwin-arm64":
-      return "@vtx-ffmpeg-forge/darwin-arm64";
+      return "@vtxdeo/darwin-arm64";
     case "win32-x64":
-      return "@vtx-ffmpeg-forge/win32-x64";
+      return "@vtxdeo/win32-x64";
     default:
       return null;
   }
