@@ -3,6 +3,7 @@
 
 const { spawn, spawnSync } = require("node:child_process");
 const fs = require("node:fs");
+const path = require("node:path");
 
 function detectLibcWithLdd() {
   const result = spawnSync("ldd", ["--version"], { encoding: "utf8" });
@@ -66,24 +67,46 @@ function getPlatformPackage() {
   }
 }
 
+function resolveLocalBinary() {
+  const binaryName =
+    process.platform === "win32" ? "vtx-ffmpeg-forge.exe" : "vtx-ffmpeg-forge";
+  const localPath = path.join(__dirname, binaryName);
+  if (fs.existsSync(localPath)) {
+    return localPath;
+  }
+  return null;
+}
+
 function resolveBinary() {
-  const pkg = getPlatformPackage();
-  if (!pkg) {
-    throw new Error(
-      `Unsupported platform: ${process.platform} ${process.arch}`
-    );
+  const envBin = process.env.VTX_FFMPEG_FORGE_BIN;
+  if (envBin && fs.existsSync(envBin)) {
+    return envBin;
   }
 
-  try {
-    return require.resolve(pkg);
-  } catch (err) {
-    const message =
-      `Optional dependency ${pkg} is not installed. ` +
-      "Reinstall on a supported platform.";
-    const error = new Error(message);
-    error.cause = err;
-    throw error;
+  const pkg = getPlatformPackage();
+  if (pkg) {
+    try {
+      return require.resolve(pkg);
+    } catch (err) {
+      const local = resolveLocalBinary();
+      if (local) {
+        return local;
+      }
+      const message =
+        `Optional dependency ${pkg} is not installed. ` +
+        "Reinstall on a supported platform or build from source.";
+      const error = new Error(message);
+      error.cause = err;
+      throw error;
+    }
   }
+
+  const local = resolveLocalBinary();
+  if (local) {
+    return local;
+  }
+
+  throw new Error(`Unsupported platform: ${process.platform} ${process.arch}`);
 }
 
 function run() {
