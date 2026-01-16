@@ -92,6 +92,9 @@ jobs:
         run: |
           mkdir -p npm/${{ matrix.pkg }}/bin
           cp artifacts/${{ matrix.pkg }}/* npm/${{ matrix.pkg }}/bin/
+          if [[ "${{ matrix.pkg }}" != *"win32"* ]]; then
+            chmod +x npm/${{ matrix.pkg }}/bin/*
+          fi
 
       - name: Sync npm package versions to tag
         shell: bash
