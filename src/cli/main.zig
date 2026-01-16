@@ -24,8 +24,8 @@ const JsonConfig = struct {
 
 const ProfileBundle = struct {
     profile: core.Profile,
-    decoders: []const core.Codec,
-    filters: []const core.Filter,
+    decoders: []const []const u8,
+    filters: []const []const u8,
 };
 
 pub fn main() !void {
@@ -50,7 +50,7 @@ pub fn main() !void {
     const cfg = parsed.value;
 
     const target = try resolveTarget(cfg.target);
-    const profile_bundle = try resolveProfile(allocator, cfg);
+    const profile_bundle = try resolveProfile(cfg);
     const configure_args = try config_gen.generateConfigureArgs(allocator, profile_bundle.profile, target);
 
     const build_dir = cfg.build_dir orelse "build";
@@ -139,7 +139,7 @@ fn resolveTarget(target_str: ?[]const u8) !std.Target {
     return target;
 }
 
-fn resolveProfile(allocator: std.mem.Allocator, cfg: JsonConfig) !ProfileBundle {
+fn resolveProfile(cfg: JsonConfig) !ProfileBundle {
     if (cfg.preset != null and cfg.profile != null) {
         return error.ConflictingProfileConfig;
     }
@@ -158,15 +158,8 @@ fn resolveProfile(allocator: std.mem.Allocator, cfg: JsonConfig) !ProfileBundle 
     const decoder_names = profile_json.enabled_decoders orelse return error.MissingDecoders;
     const filter_names = profile_json.enabled_filters orelse return error.MissingFilters;
 
-    var decoders = try allocator.alloc(core.Codec, decoder_names.len);
-    for (decoder_names, 0..) |name, idx| {
-        decoders[idx] = try parseCodec(name);
-    }
-
-    var filters = try allocator.alloc(core.Filter, filter_names.len);
-    for (filter_names, 0..) |name, idx| {
-        filters[idx] = try parseFilter(name);
-    }
+    const decoders = decoder_names;
+    const filters = filter_names;
 
     const enable_asm = profile_json.enable_asm orelse true;
     const hardware_acceleration = profile_json.hardware_acceleration orelse false;
@@ -183,20 +176,6 @@ fn resolveProfile(allocator: std.mem.Allocator, cfg: JsonConfig) !ProfileBundle 
         .decoders = decoders,
         .filters = filters,
     };
-}
-
-fn parseCodec(name: []const u8) !core.Codec {
-    if (std.mem.eql(u8, name, "h264")) return .h264;
-    if (std.mem.eql(u8, name, "hevc")) return .hevc;
-    if (std.mem.eql(u8, name, "vp9")) return .vp9;
-    return error.InvalidCodec;
-}
-
-fn parseFilter(name: []const u8) !core.Filter {
-    if (std.mem.eql(u8, name, "scale")) return .scale;
-    if (std.mem.eql(u8, name, "fps")) return .fps;
-    if (std.mem.eql(u8, name, "crop")) return .crop;
-    return error.InvalidFilter;
 }
 
 fn runCommand(allocator: std.mem.Allocator, cwd: []const u8, argv: []const []const u8) !void {

@@ -25,11 +25,13 @@ pub fn generateConfigureArgs(
     }
 
     for (adjusted.enabled_decoders) |decoder| {
-        try args.append(allocator, core.codecToConfigureFlag(decoder));
+        const flag = try std.fmt.allocPrint(allocator, "--enable-decoder={s}", .{decoder});
+        try args.append(allocator, flag);
     }
 
     for (adjusted.enabled_filters) |filter| {
-        try args.append(allocator, core.filterToConfigureFlag(filter));
+        const flag = try std.fmt.allocPrint(allocator, "--enable-filter={s}", .{filter});
+        try args.append(allocator, flag);
     }
 
     for (adjusted.extra_flags) |flag| {
