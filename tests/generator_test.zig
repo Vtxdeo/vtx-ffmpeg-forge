@@ -19,6 +19,7 @@ test "generate config args for nano" {
         arena.allocator(),
         nano.get(),
         target,
+        null,
     );
 
     try std.testing.expect(hasArg(args, "--disable-everything"));
@@ -36,6 +37,7 @@ test "enable asm for x86_64" {
         arena.allocator(),
         nano.get(),
         target,
+        null,
     );
 
     try std.testing.expect(hasArg(args, "--enable-asm"));
@@ -52,8 +54,25 @@ test "disable asm for wasm32" {
         arena.allocator(),
         nano.get(),
         target,
+        null,
     );
 
     try std.testing.expect(hasArg(args, "--disable-asm"));
     try std.testing.expect(!hasArg(args, "--enable-asm"));
+}
+
+test "inject extra version flag" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const target_query = std.Target.Query{ .cpu_arch = .x86_64, .os_tag = .linux };
+    const target = std.zig.resolveTargetQueryOrFatal(target_query);
+    const args = try config.generateConfigureArgs(
+        arena.allocator(),
+        nano.get(),
+        target,
+        "vtx-forge-v0.1.10-nano-g7a8b9c",
+    );
+
+    try std.testing.expect(hasArg(args, "--extra-version=vtx-forge-v0.1.10-nano-g7a8b9c"));
 }

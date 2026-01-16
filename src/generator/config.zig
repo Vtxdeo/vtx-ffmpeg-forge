@@ -6,6 +6,7 @@ pub fn generateConfigureArgs(
     allocator: std.mem.Allocator,
     profile: core.Profile,
     target: std.Target,
+    extra_version: ?[]const u8,
 ) ![]const []const u8 {
     var args = std.ArrayList([]const u8).empty;
     errdefer args.deinit(allocator);
@@ -14,6 +15,11 @@ pub fn generateConfigureArgs(
 
     if (!adjusted.validate()) {
         return error.InvalidProfile;
+    }
+
+    if (extra_version) |version| {
+        const flag = try std.fmt.allocPrint(allocator, "--extra-version={s}", .{version});
+        try args.append(allocator, flag);
     }
 
     if (adjusted.disable_everything) {

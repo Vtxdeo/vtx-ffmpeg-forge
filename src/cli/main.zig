@@ -1,5 +1,6 @@
 const std = @import("std");
 const builtin = @import("builtin");
+const build_options = @import("build_options");
 const core = @import("core_profile");
 const config_gen = @import("config");
 const preset_nano = @import("preset_nano");
@@ -8,6 +9,7 @@ const cli_args = @import("cli_args");
 const cli_command = @import("cli_command");
 const cli_config = @import("cli_config");
 const cli_errors = @import("cli_errors");
+const fingerprint = @import("cli_fingerprint");
 
 const JsonProfile = struct {
     enabled_decoders: ?[]const []const u8 = null,
@@ -23,6 +25,7 @@ const ProfileBundle = struct {
     profile: core.Profile,
     decoders: []const []const u8,
     filters: []const []const u8,
+    profile_label: []const u8,
 };
 
 pub fn main() !void {
@@ -63,7 +66,14 @@ fn realMain(allocator: std.mem.Allocator) !void {
 
     const target = try resolveTarget(cfg.target);
     const profile_bundle = try resolveProfile(cfg);
-    const configure_args = try config_gen.generateConfigureArgs(allocator, profile_bundle.profile, target);
+    const fingerprint_value = try fingerprint.buildFingerprint(
+        allocator,
+        build_options.tool_id,
+        build_options.version,
+        build_options.git_hash,
+        profile_bundle.profile_label,
+    );
+    const configure_args = try config_gen.generateConfigureArgs(allocator, profile_bundle.profile, target, fingerprint_value);
 
     const build_dir = cfg.build_dir orelse "build";
     try std.fs.cwd().makePath(build_dir);
@@ -138,10 +148,10 @@ fn resolveProfile(cfg: JsonConfig) !ProfileBundle {
 
     if (cfg.preset) |preset_name| {
         if (std.mem.eql(u8, preset_name, "nano")) {
-            return .{ .profile = preset_nano.get(), .decoders = &.{}, .filters = &.{} };
+            return .{ .profile = preset_nano.get(), .decoders = &.{}, .filters = &.{}, .profile_label = "nano" };
         }
         if (std.mem.eql(u8, preset_name, "full")) {
-            return .{ .profile = preset_full.get(), .decoders = &.{}, .filters = &.{} };
+            return .{ .profile = preset_full.get(), .decoders = &.{}, .filters = &.{}, .profile_label = "full" };
         }
         return error.UnknownPreset;
     }
@@ -169,5 +179,6 @@ fn resolveProfile(cfg: JsonConfig) !ProfileBundle {
         },
         .decoders = decoders,
         .filters = filters,
+        .profile_label = "custom",
     };
 }
