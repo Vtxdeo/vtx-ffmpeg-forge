@@ -31,7 +31,7 @@ for (const dir of packageDirs) {
   }
   const pkg = readJson(pkgPath);
   pkg.version = version;
-  if (pkg.name === "vtx-ffmpeg-forge" && pkg.optionalDependencies) {
+  if (pkg.name === "@vtxdeo/ffmpeg-forge" && pkg.optionalDependencies) {
     for (const depName of Object.keys(pkg.optionalDependencies)) {
       pkg.optionalDependencies[depName] = version;
     }
