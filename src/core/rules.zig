@@ -9,7 +9,7 @@ pub fn applyTargetRules(profile: Profile, target: std.Target) !Profile {
     }
 
     const allow_asm = switch (target.cpu.arch) {
-        .x86, .x86_64, .aarch64 => true,
+        .x86, .x86_64, .aarch64, .arm, .mipsel => true,
         else => false,
     };
 

@@ -45,7 +45,7 @@ pub fn printUsage() void {
         \\  ffmpeg_source (string, required)
         \\  build_dir (string, optional)
         \\  install_dir (string, optional)
-        \\  target (string, optional: native/x86/x86_64/aarch64/wasm32/wasm64)
+        \\  target (string, optional: native/x86/x86_64/aarch64/armv7/mipsel/riscv64/wasm32/wasm64)
         \\  make_jobs (number, optional)
         \\  preset (string, optional: nano/full)
         \\  profile (object, optional if preset provided)
@@ -54,6 +54,7 @@ pub fn printUsage() void {
         \\    extra_flags (array of strings, optional)
         \\    enable_asm (bool, optional)
         \\    hardware_acceleration (bool, optional)
+        \\    disable_everything (bool, optional)
         \\
     , .{});
 }

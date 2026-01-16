@@ -16,7 +16,9 @@ pub fn generateConfigureArgs(
         return error.InvalidProfile;
     }
 
-    try args.append(allocator, "--disable-everything");
+    if (adjusted.disable_everything) {
+        try args.append(allocator, "--disable-everything");
+    }
 
     if (adjusted.enable_asm) {
         try args.append(allocator, "--enable-asm");

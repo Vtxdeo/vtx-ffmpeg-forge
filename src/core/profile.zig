@@ -4,8 +4,12 @@ pub const Profile = struct {
     extra_flags: []const []const u8,
     enable_asm: bool,
     hardware_acceleration: bool,
+    disable_everything: bool,
 
     pub fn validate(self: Profile) bool {
-        return self.enabled_decoders.len > 0;
+        return self.enabled_decoders.len > 0 or
+            self.enabled_filters.len > 0 or
+            self.extra_flags.len > 0 or
+            !self.disable_everything;
     }
 };

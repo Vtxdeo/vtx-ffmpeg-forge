@@ -15,6 +15,7 @@ const JsonProfile = struct {
     extra_flags: ?[]const []const u8 = null,
     enable_asm: ?bool = null,
     hardware_acceleration: ?bool = null,
+    disable_everything: ?bool = null,
 };
 const JsonConfig = cli_config.JsonConfig(JsonProfile);
 
@@ -105,6 +106,12 @@ fn resolveTarget(target_str: ?[]const u8) !std.Target {
         target.cpu.arch = .x86_64;
     } else if (std.mem.eql(u8, value, "aarch64")) {
         target.cpu.arch = .aarch64;
+    } else if (std.mem.eql(u8, value, "armv7")) {
+        target.cpu.arch = .arm;
+    } else if (std.mem.eql(u8, value, "mipsel")) {
+        target.cpu.arch = .mipsel;
+    } else if (std.mem.eql(u8, value, "riscv64")) {
+        target.cpu.arch = .riscv64;
     } else if (std.mem.eql(u8, value, "wasm32")) {
         target.cpu.arch = .wasm32;
     } else if (std.mem.eql(u8, value, "wasm64")) {
@@ -148,6 +155,7 @@ fn resolveProfile(cfg: JsonConfig) !ProfileBundle {
 
     const enable_asm = profile_json.enable_asm orelse true;
     const hardware_acceleration = profile_json.hardware_acceleration orelse false;
+    const disable_everything = profile_json.disable_everything orelse true;
     const extra_flags = profile_json.extra_flags orelse &.{};
 
     return .{
@@ -157,6 +165,7 @@ fn resolveProfile(cfg: JsonConfig) !ProfileBundle {
             .extra_flags = extra_flags,
             .enable_asm = enable_asm,
             .hardware_acceleration = hardware_acceleration,
+            .disable_everything = disable_everything,
         },
         .decoders = decoders,
         .filters = filters,

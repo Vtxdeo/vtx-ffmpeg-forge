@@ -7,5 +7,6 @@ pub fn get() core.Profile {
         .extra_flags = &.{ "--enable-gpl" },
         .enable_asm = true,
         .hardware_acceleration = false,
+        .disable_everything = true,
     };
 }
