@@ -1,6 +1,10 @@
 {
   "name": "@vtxdeo/ffmpeg-forge",
   "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Vtxdeo/vtx-ffmpeg-forge"
+  },
   "main": "index.js",
   "bin": {
     "vtx-ffmpeg-forge": "./bin/cli.js"

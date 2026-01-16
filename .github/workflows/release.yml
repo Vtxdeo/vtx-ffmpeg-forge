@@ -135,12 +135,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         shell: bash
-        working-directory: ${{ env.WORKDIR }}
+        working-directory: ${{ env.WORKDIR }}/npm/${{ matrix.pkg }}
         run: |
           npm whoami
           retries=3
           for attempt in $(seq 1 "$retries"); do
-            if npm publish --access public --provenance --prefix npm/${{ matrix.pkg }}; then
+            if npm publish --access public --provenance; then
               exit 0
             fi
             if [ "$attempt" -lt "$retries" ]; then
@@ -191,19 +191,19 @@ jobs:
         working-directory: ${{ env.WORKDIR }}
         run: |
           for pkg in linux-x64 darwin-x64 darwin-arm64 win32-x64; do
-            npm publish --access public --provenance --prefix npm/$pkg
+            (cd "npm/$pkg" && npm publish --access public --provenance)
           done
 
       - name: Publish main package
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         shell: bash
-        working-directory: ${{ env.WORKDIR }}
+        working-directory: ${{ env.WORKDIR }}/npm/vtx-ffmpeg-forge
         run: |
           npm whoami
           retries=3
           for attempt in $(seq 1 "$retries"); do
-            if npm publish --access public --provenance --prefix npm/vtx-ffmpeg-forge; then
+            if npm publish --access public --provenance; then
               exit 0
             fi
             if [ "$attempt" -lt "$retries" ]; then
