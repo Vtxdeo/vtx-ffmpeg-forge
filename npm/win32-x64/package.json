@@ -1,0 +1,9 @@
+{
+  "name": "@vtx-ffmpeg-forge/win32-x64",
+  "version": "0.1.0",
+  "description": "The win32-x64 binary for vtx-ffmpeg-forge",
+  "os": ["win32"],
+  "cpu": ["x64"],
+  "main": "bin/vtx-ffmpeg-forge.exe",
+  "files": ["bin"]
+}

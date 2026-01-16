@@ -11,6 +11,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Setup Zig
         uses: goto-bus-stop/setup-zig@v2
         with:
@@ -25,6 +30,9 @@ jobs:
           key: ${{ runner.os }}-zig-${{ hashFiles('**/build.zig', '**/build.zig.zon', '**/zig.mod', '**/zig.mod.lock') }}
           restore-keys: |
             ${{ runner.os }}-zig-
+
+      - name: Validate npm package matrix
+        run: node scripts/validate-npm-matrix.js
 
       - name: Run logic-layer tests
         run: zig build test

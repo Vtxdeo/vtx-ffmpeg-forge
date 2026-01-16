@@ -1,0 +1,110 @@
+name: vtx-ffmpeg-forge Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build ${{ matrix.pkg }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            pkg: linux-x64
+            target: x86_64-linux
+            binary: vtx-ffmpeg-forge
+          - os: windows-latest
+            pkg: win32-x64
+            target: x86_64-windows
+            binary: vtx-ffmpeg-forge.exe
+          - os: macos-latest
+            pkg: darwin-arm64
+            target: aarch64-macos
+            binary: vtx-ffmpeg-forge
+          - os: macos-latest
+            pkg: darwin-x64
+            target: x86_64-macos
+            binary: vtx-ffmpeg-forge
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.15.2
+
+      - name: Build binary
+        run: zig build -Dtarget=${{ matrix.target }} -Doptimize=ReleaseSafe
+
+      - name: Stage binary
+        shell: bash
+        run: |
+          mkdir -p npm/${{ matrix.pkg }}/bin
+          cp zig-out/bin/${{ matrix.binary }} npm/${{ matrix.pkg }}/bin/${{ matrix.binary }}
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.pkg }}
+          path: npm/${{ matrix.pkg }}/bin/${{ matrix.binary }}
+
+  publish:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Stage binaries into npm packages
+        shell: bash
+        run: |
+          for pkg in linux-x64 darwin-x64 darwin-arm64 win32-x64; do
+            mkdir -p npm/$pkg/bin
+            cp artifacts/$pkg/* npm/$pkg/bin/
+          done
+
+      - name: Sync npm package versions to tag
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          NPM_VERSION="$VERSION" node scripts/set-npm-versions.js
+
+      - name: Validate npm package matrix
+        run: node scripts/validate-npm-matrix.js
+
+      - name: Publish platform packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        shell: bash
+        run: |
+          for pkg in linux-x64 darwin-x64 darwin-arm64 win32-x64; do
+            npm publish --access public --silent --prefix npm/$pkg
+          done
+
+      - name: Publish main package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --silent --prefix npm/vtx-ffmpeg-forge
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*

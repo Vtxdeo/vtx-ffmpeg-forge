@@ -1,0 +1,9 @@
+{
+  "name": "@vtx-ffmpeg-forge/linux-x64",
+  "version": "0.1.0",
+  "description": "The linux-x64 binary for vtx-ffmpeg-forge",
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "main": "bin/vtx-ffmpeg-forge",
+  "files": ["bin"]
+}
