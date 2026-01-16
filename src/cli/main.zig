@@ -96,23 +96,6 @@ fn resolveTarget(target_str: ?[]const u8) !std.Target {
     return target;
 }
 
-fn parseConfig(allocator: std.mem.Allocator, config_raw: []const u8) !JsonConfig {
-    const parsed = try std.json.parseFromSlice(RawJsonConfig, allocator, config_raw, .{
-        .ignore_unknown_fields = true,
-    });
-    const raw = parsed.value;
-
-    return .{
-        .ffmpeg_source = try ExistingDir.init(raw.ffmpeg_source),
-        .build_dir = raw.build_dir,
-        .install_dir = raw.install_dir,
-        .target = raw.target,
-        .make_jobs = raw.make_jobs,
-        .preset = raw.preset,
-        .profile = raw.profile,
-    };
-}
-
 fn resolveProfile(cfg: JsonConfig) !ProfileBundle {
     if (cfg.preset != null and cfg.profile != null) {
         return error.ConflictingProfileConfig;
