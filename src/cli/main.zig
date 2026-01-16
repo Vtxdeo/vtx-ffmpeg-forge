@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const core = @import("core_profile");
 const config_gen = @import("config");
 const preset_nano = @import("preset_nano");
@@ -92,7 +93,7 @@ fn realMain(allocator: std.mem.Allocator) !void {
 }
 
 fn resolveTarget(target_str: ?[]const u8) !std.Target {
-    var target = std.builtin.target;
+    var target = builtin.target;
     if (target_str == null or std.mem.eql(u8, target_str.?, "native")) {
         return target;
     }
