@@ -12,8 +12,32 @@ const JsonProfile = struct {
     hardware_acceleration: ?bool = null,
 };
 
-const JsonConfig = struct {
+const ExistingDir = struct {
+    path: []const u8,
+
+    pub fn init(path: []const u8) !ExistingDir {
+        var dir = std.fs.cwd().openDir(path, .{}) catch return error.InvalidFfmpegSource;
+        defer dir.close();
+
+        var configure = dir.openFile("configure", .{}) catch return error.InvalidFfmpegSource;
+        configure.close();
+
+        return .{ .path = path };
+    }
+};
+
+const RawJsonConfig = struct {
     ffmpeg_source: []const u8,
+    build_dir: ?[]const u8 = null,
+    install_dir: ?[]const u8 = null,
+    target: ?[]const u8 = null,
+    make_jobs: ?u32 = null,
+    preset: ?[]const u8 = null,
+    profile: ?JsonProfile = null,
+};
+
+const JsonConfig = struct {
+    ffmpeg_source: ExistingDir,
     build_dir: ?[]const u8 = null,
     install_dir: ?[]const u8 = null,
     target: ?[]const u8 = null,
@@ -44,10 +68,7 @@ pub fn main() !void {
     const config_path = try parseArgs(args);
     const config_raw = try std.fs.cwd().readFileAlloc(allocator, config_path, 1024 * 1024);
 
-    const parsed = try std.json.parseFromSlice(JsonConfig, allocator, config_raw, .{
-        .ignore_unknown_fields = true,
-    });
-    const cfg = parsed.value;
+    const cfg = try parseConfig(allocator, config_raw);
 
     const target = try resolveTarget(cfg.target);
     const profile_bundle = try resolveProfile(cfg);
@@ -56,7 +77,7 @@ pub fn main() !void {
     const build_dir = cfg.build_dir orelse "build";
     try std.fs.cwd().makePath(build_dir);
 
-    const configure_path = try std.fs.path.join(allocator, &.{ cfg.ffmpeg_source, "configure" });
+    const configure_path = try std.fs.path.join(allocator, &.{ cfg.ffmpeg_source.path, "configure" });
     var configure_argv = std.ArrayList([]const u8).empty;
     try configure_argv.append(allocator, configure_path);
 
@@ -137,6 +158,23 @@ fn resolveTarget(target_str: ?[]const u8) !std.Target {
     }
 
     return target;
+}
+
+fn parseConfig(allocator: std.mem.Allocator, config_raw: []const u8) !JsonConfig {
+    const parsed = try std.json.parseFromSlice(RawJsonConfig, allocator, config_raw, .{
+        .ignore_unknown_fields = true,
+    });
+    const raw = parsed.value;
+
+    return .{
+        .ffmpeg_source = try ExistingDir.init(raw.ffmpeg_source),
+        .build_dir = raw.build_dir,
+        .install_dir = raw.install_dir,
+        .target = raw.target,
+        .make_jobs = raw.make_jobs,
+        .preset = raw.preset,
+        .profile = raw.profile,
+    };
 }
 
 fn resolveProfile(cfg: JsonConfig) !ProfileBundle {
