@@ -3,6 +3,9 @@ const core = @import("core_profile");
 const config_gen = @import("config");
 const preset_nano = @import("preset_nano");
 const preset_full = @import("preset_full");
+const cli_args = @import("cli_args");
+const cli_command = @import("cli_command");
+const cli_config = @import("cli_config");
 
 const JsonProfile = struct {
     enabled_decoders: ?[]const []const u8 = null,
@@ -11,40 +14,7 @@ const JsonProfile = struct {
     enable_asm: ?bool = null,
     hardware_acceleration: ?bool = null,
 };
-
-const ExistingDir = struct {
-    path: []const u8,
-
-    pub fn init(path: []const u8) !ExistingDir {
-        var dir = std.fs.cwd().openDir(path, .{}) catch return error.InvalidFfmpegSource;
-        defer dir.close();
-
-        var configure = dir.openFile("configure", .{}) catch return error.InvalidFfmpegSource;
-        configure.close();
-
-        return .{ .path = path };
-    }
-};
-
-const RawJsonConfig = struct {
-    ffmpeg_source: []const u8,
-    build_dir: ?[]const u8 = null,
-    install_dir: ?[]const u8 = null,
-    target: ?[]const u8 = null,
-    make_jobs: ?u32 = null,
-    preset: ?[]const u8 = null,
-    profile: ?JsonProfile = null,
-};
-
-const JsonConfig = struct {
-    ffmpeg_source: ExistingDir,
-    build_dir: ?[]const u8 = null,
-    install_dir: ?[]const u8 = null,
-    target: ?[]const u8 = null,
-    make_jobs: ?u32 = null,
-    preset: ?[]const u8 = null,
-    profile: ?JsonProfile = null,
-};
+const JsonConfig = cli_config.JsonConfig(JsonProfile);
 
 const ProfileBundle = struct {
     profile: core.Profile,
@@ -61,14 +31,14 @@ pub fn main() !void {
 
     const args = try std.process.argsAlloc(allocator);
     if (args.len < 2) {
-        printUsage();
+        cli_args.printUsage();
         return error.InvalidArgs;
     }
 
-    const config_path = try parseArgs(args);
+    const config_path = try cli_args.parseArgs(args);
     const config_raw = try std.fs.cwd().readFileAlloc(allocator, config_path, 1024 * 1024);
 
-    const cfg = try parseConfig(allocator, config_raw);
+    const cfg = try cli_config.parseConfig(allocator, config_raw, JsonProfile);
 
     const target = try resolveTarget(cfg.target);
     const profile_bundle = try resolveProfile(cfg);
@@ -90,7 +60,7 @@ pub fn main() !void {
         try configure_argv.append(allocator, arg);
     }
 
-    try runCommand(allocator, build_dir, configure_argv.items);
+    try cli_command.runCommand(allocator, build_dir, configure_argv.items);
 
     var make_argv = std.ArrayList([]const u8).empty;
     try make_argv.append(allocator, "make");
@@ -99,41 +69,7 @@ pub fn main() !void {
         try make_argv.append(allocator, jobs_arg);
     }
 
-    try runCommand(allocator, build_dir, make_argv.items);
-}
-
-fn parseArgs(args: [][]const u8) ![]const u8 {
-    var index: usize = 1;
-    if (std.mem.eql(u8, args[index], "build")) {
-        index += 1;
-    }
-
-    var config_path: ?[]const u8 = null;
-    while (index < args.len) : (index += 1) {
-        const arg = args[index];
-        if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help")) {
-            printUsage();
-            return error.InvalidArgs;
-        }
-
-        if (std.mem.eql(u8, arg, "-c") or std.mem.eql(u8, arg, "--config")) {
-            index += 1;
-            if (index >= args.len) {
-                return error.InvalidArgs;
-            }
-            config_path = args[index];
-            continue;
-        }
-
-        if (config_path == null and arg.len > 0 and arg[0] != '-') {
-            config_path = arg;
-            continue;
-        }
-
-        return error.InvalidArgs;
-    }
-
-    return config_path orelse error.InvalidArgs;
+    try cli_command.runCommand(allocator, build_dir, make_argv.items);
 }
 
 fn resolveTarget(target_str: ?[]const u8) !std.Target {
@@ -214,44 +150,4 @@ fn resolveProfile(cfg: JsonConfig) !ProfileBundle {
         .decoders = decoders,
         .filters = filters,
     };
-}
-
-fn runCommand(allocator: std.mem.Allocator, cwd: []const u8, argv: []const []const u8) !void {
-    var child = std.process.Child.init(argv, allocator);
-    child.cwd = cwd;
-    child.stdin_behavior = .Inherit;
-    child.stdout_behavior = .Inherit;
-    child.stderr_behavior = .Inherit;
-
-    const term = try child.spawnAndWait();
-    switch (term) {
-        .Exited => |code| {
-            if (code != 0) return error.CommandFailed;
-        },
-        else => return error.CommandFailed,
-    }
-}
-
-fn printUsage() void {
-    std.debug.print(
-        \\Usage:
-        \\  vtx-ffmpeg-forge build -c config.json
-        \\  vtx-ffmpeg-forge -c config.json
-        \\  vtx-ffmpeg-forge config.json
-        \\
-        \\Config fields:
-        \\  ffmpeg_source (string, required)
-        \\  build_dir (string, optional)
-        \\  install_dir (string, optional)
-        \\  target (string, optional: native/x86/x86_64/aarch64/wasm32/wasm64)
-        \\  make_jobs (number, optional)
-        \\  preset (string, optional: nano/full)
-        \\  profile (object, optional if preset provided)
-        \\    enabled_decoders (array of strings)
-        \\    enabled_filters (array of strings)
-        \\    extra_flags (array of strings, optional)
-        \\    enable_asm (bool, optional)
-        \\    hardware_acceleration (bool, optional)
-        \\
-    , .{});
 }
