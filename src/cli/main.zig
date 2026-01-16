@@ -57,6 +57,7 @@ fn realMain(allocator: std.mem.Allocator) !void {
     };
 
     const cfg = try cli_config.parseConfig(allocator, config_raw, JsonProfile);
+    try validateFfmpegSource(cfg.ffmpeg_source);
 
     const target = try resolveTarget(cfg.target);
     const profile_bundle = try resolveProfile(cfg);
@@ -65,7 +66,7 @@ fn realMain(allocator: std.mem.Allocator) !void {
     const build_dir = cfg.build_dir orelse "build";
     try std.fs.cwd().makePath(build_dir);
 
-    const configure_path = try std.fs.path.join(allocator, &.{ cfg.ffmpeg_source.path, "configure" });
+    const configure_path = try std.fs.path.join(allocator, &.{ cfg.ffmpeg_source, "configure" });
     var configure_argv = std.ArrayList([]const u8).empty;
     try configure_argv.append(allocator, configure_path);
 
@@ -112,6 +113,14 @@ fn resolveTarget(target_str: ?[]const u8) !std.Target {
     }
 
     return target;
+}
+
+fn validateFfmpegSource(path: []const u8) !void {
+    var dir = std.fs.cwd().openDir(path, .{}) catch return error.InvalidFfmpegSource;
+    defer dir.close();
+
+    var configure = dir.openFile("configure", .{}) catch return error.InvalidFfmpegSource;
+    configure.close();
 }
 
 fn resolveProfile(cfg: JsonConfig) !ProfileBundle {
