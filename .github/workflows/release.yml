@@ -137,9 +137,10 @@ jobs:
         shell: bash
         working-directory: ${{ env.WORKDIR }}
         run: |
+          npm whoami
           retries=3
           for attempt in $(seq 1 "$retries"); do
-            if npm publish --access public --silent --provenance --prefix npm/${{ matrix.pkg }}; then
+            if npm publish --access public --provenance --prefix npm/${{ matrix.pkg }}; then
               exit 0
             fi
             if [ "$attempt" -lt "$retries" ]; then
@@ -190,7 +191,7 @@ jobs:
         working-directory: ${{ env.WORKDIR }}
         run: |
           for pkg in linux-x64 darwin-x64 darwin-arm64 win32-x64; do
-            npm publish --access public --silent --provenance --prefix npm/$pkg
+            npm publish --access public --provenance --prefix npm/$pkg
           done
 
       - name: Publish main package
@@ -199,9 +200,10 @@ jobs:
         shell: bash
         working-directory: ${{ env.WORKDIR }}
         run: |
+          npm whoami
           retries=3
           for attempt in $(seq 1 "$retries"); do
-            if npm publish --access public --silent --provenance --prefix npm/vtx-ffmpeg-forge; then
+            if npm publish --access public --provenance --prefix npm/vtx-ffmpeg-forge; then
               exit 0
             fi
             if [ "$attempt" -lt "$retries" ]; then
