@@ -9,10 +9,6 @@ permissions:
   contents: write
   id-token: write
 
-defaults:
-  run:
-    working-directory: vtx-ffmpeg-forge
-
 jobs:
   build:
     name: Build ${{ matrix.pkg }}
@@ -46,16 +42,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Resolve workspace root
+        shell: bash
+        run: |
+          if [ -d "vtx-ffmpeg-forge" ]; then
+            echo "WORKDIR=vtx-ffmpeg-forge" >> "$GITHUB_ENV"
+          else
+            echo "WORKDIR=." >> "$GITHUB_ENV"
+          fi
+
       - name: Setup Zig
         uses: goto-bus-stop/setup-zig@v2
         with:
           version: 0.15.2
 
       - name: Build binary
+        working-directory: ${{ env.WORKDIR }}
         run: zig build -Dtarget=${{ matrix.target }} -Doptimize=ReleaseSafe
 
       - name: Stage binary
         shell: bash
+        working-directory: ${{ env.WORKDIR }}
         run: |
           mkdir -p npm/${{ matrix.pkg }}/bin
           cp zig-out/bin/${{ matrix.binary }} npm/${{ matrix.pkg }}/bin/${{ matrix.binary }}
@@ -64,7 +71,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.pkg }}
-          path: vtx-ffmpeg-forge/npm/${{ matrix.pkg }}/bin/${{ matrix.binary }}
+          path: ${{ env.WORKDIR }}/npm/${{ matrix.pkg }}/bin/${{ matrix.binary }}
 
   publish-platform:
     name: Publish ${{ matrix.pkg }}
@@ -84,6 +91,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Resolve workspace root
+        shell: bash
+        run: |
+          if [ -d "vtx-ffmpeg-forge" ]; then
+            echo "WORKDIR=vtx-ffmpeg-forge" >> "$GITHUB_ENV"
+          else
+            echo "WORKDIR=." >> "$GITHUB_ENV"
+          fi
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -94,10 +110,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.pkg }}
-          path: vtx-ffmpeg-forge/artifacts/${{ matrix.pkg }}
+          path: ${{ env.WORKDIR }}/artifacts/${{ matrix.pkg }}
 
       - name: Stage binary into npm package
         shell: bash
+        working-directory: ${{ env.WORKDIR }}
         run: |
           mkdir -p npm/${{ matrix.pkg }}/bin
           cp artifacts/${{ matrix.pkg }}/* npm/${{ matrix.pkg }}/bin/
@@ -107,6 +124,7 @@ jobs:
 
       - name: Sync npm package versions to tag
         shell: bash
+        working-directory: ${{ env.WORKDIR }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           NPM_VERSION="$VERSION" node scripts/set-npm-versions.js
@@ -115,6 +133,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         shell: bash
+        working-directory: ${{ env.WORKDIR }}
         run: |
           retries=3
           for attempt in $(seq 1 "$retries"); do
@@ -136,6 +155,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Resolve workspace root
+        shell: bash
+        run: |
+          if [ -d "vtx-ffmpeg-forge" ]; then
+            echo "WORKDIR=vtx-ffmpeg-forge" >> "$GITHUB_ENV"
+          else
+            echo "WORKDIR=." >> "$GITHUB_ENV"
+          fi
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -144,17 +172,20 @@ jobs:
 
       - name: Sync npm package versions to tag
         shell: bash
+        working-directory: ${{ env.WORKDIR }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           NPM_VERSION="$VERSION" node scripts/set-npm-versions.js
 
       - name: Validate npm package matrix
+        working-directory: ${{ env.WORKDIR }}
         run: node scripts/validate-npm-matrix.js
 
       - name: Publish platform packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         shell: bash
+        working-directory: ${{ env.WORKDIR }}
         run: |
           for pkg in linux-x64 darwin-x64 darwin-arm64 win32-x64; do
             npm publish --access public --silent --provenance --prefix npm/$pkg
@@ -164,6 +195,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         shell: bash
+        working-directory: ${{ env.WORKDIR }}
         run: |
           retries=3
           for attempt in $(seq 1 "$retries"); do
@@ -185,9 +217,9 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          path: vtx-ffmpeg-forge/artifacts
+          path: ${{ env.WORKDIR }}/artifacts
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: vtx-ffmpeg-forge/artifacts/**/*
+          files: ${{ env.WORKDIR }}/artifacts/**/*

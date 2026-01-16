@@ -4,16 +4,21 @@ on:
   push:
   pull_request:
 
-defaults:
-  run:
-    working-directory: vtx-ffmpeg-forge
-
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Resolve workspace root
+        shell: bash
+        run: |
+          if [ -d "vtx-ffmpeg-forge" ]; then
+            echo "WORKDIR=vtx-ffmpeg-forge" >> "$GITHUB_ENV"
+          else
+            echo "WORKDIR=." >> "$GITHUB_ENV"
+          fi
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -29,14 +34,16 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            vtx-ffmpeg-forge/zig-cache
+            ${{ env.WORKDIR }}/zig-cache
             ~/.cache/zig
-          key: ${{ runner.os }}-zig-${{ hashFiles('vtx-ffmpeg-forge/**/build.zig', 'vtx-ffmpeg-forge/**/build.zig.zon', 'vtx-ffmpeg-forge/**/zig.mod', 'vtx-ffmpeg-forge/**/zig.mod.lock') }}
+          key: ${{ runner.os }}-zig-${{ hashFiles(format('{0}/**/build.zig', env.WORKDIR), format('{0}/**/build.zig.zon', env.WORKDIR), format('{0}/**/zig.mod', env.WORKDIR), format('{0}/**/zig.mod.lock', env.WORKDIR)) }}
           restore-keys: |
             ${{ runner.os }}-zig-
 
       - name: Validate npm package matrix
+        working-directory: ${{ env.WORKDIR }}
         run: node scripts/validate-npm-matrix.js
 
       - name: Run logic-layer tests
+        working-directory: ${{ env.WORKDIR }}
         run: zig build test
