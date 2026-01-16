@@ -1,6 +1,6 @@
 {
   "name": "@vtxdeo/ffmpeg-forge-linux-musl-x64",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "The linux-musl-x64 binary for vtx-ffmpeg-forge",
   "repository": {
     "type": "git",

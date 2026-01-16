@@ -1,6 +1,6 @@
 {
   "name": "@vtxdeo/ffmpeg-forge-win32-x64",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "The win32-x64 binary for vtx-ffmpeg-forge",
   "repository": {
     "type": "git",
