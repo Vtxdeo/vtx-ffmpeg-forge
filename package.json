@@ -1,6 +1,6 @@
 {
   "name": "vtx-ffmpeg-forge",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "FFmpeg configuration builder for the VTX toolchain",
   "main": "npm/vtx-ffmpeg-forge/index.js",
   "bin": {
