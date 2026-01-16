@@ -2,13 +2,13 @@ const std = @import("std");
 
 pub fn parseArgs(args: []const [:0]u8) ![]const u8 {
     var index: usize = 1;
-    if (std.mem.eql(u8, std.mem.span(args[index]), "build")) {
+    if (std.mem.eql(u8, std.mem.sliceTo(args[index], 0), "build")) {
         index += 1;
     }
 
     var config_path: ?[]const u8 = null;
     while (index < args.len) : (index += 1) {
-        const arg: []const u8 = std.mem.span(args[index]);
+        const arg: []const u8 = std.mem.sliceTo(args[index], 0);
         if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help")) {
             printUsage();
             return error.InvalidArgs;
