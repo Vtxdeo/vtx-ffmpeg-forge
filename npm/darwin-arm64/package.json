@@ -1,5 +1,5 @@
 {
-  "name": "@vtxdeo/darwin-arm64",
+  "name": "@vtxdeo/ffmpeg-forge-darwin-arm64",
   "version": "0.1.8",
   "description": "The darwin-arm64 binary for vtx-ffmpeg-forge",
   "repository": {
