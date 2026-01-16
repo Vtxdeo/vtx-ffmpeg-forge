@@ -6,6 +6,7 @@ const preset_full = @import("preset_full");
 const cli_args = @import("cli_args");
 const cli_command = @import("cli_command");
 const cli_config = @import("cli_config");
+const cli_errors = @import("cli_errors");
 
 const JsonProfile = struct {
     enabled_decoders: ?[]const []const u8 = null,
@@ -29,6 +30,15 @@ pub fn main() !void {
     defer arena.deinit();
     const allocator = arena.allocator();
 
+    realMain(allocator) catch |err| {
+        if (cli_errors.reportError(err)) {
+            std.process.exit(1);
+        }
+        return err;
+    };
+}
+
+fn realMain(allocator: std.mem.Allocator) !void {
     const args = try std.process.argsAlloc(allocator);
     if (args.len < 2) {
         cli_args.printUsage();
@@ -36,7 +46,15 @@ pub fn main() !void {
     }
 
     const config_path = try cli_args.parseArgs(args);
-    const config_raw = try std.fs.cwd().readFileAlloc(allocator, config_path, 1024 * 1024);
+    const config_raw = std.fs.cwd().readFileAlloc(allocator, config_path, 1024 * 1024) catch |err| {
+        switch (err) {
+            error.FileNotFound => return error.ConfigNotFound,
+            error.AccessDenied => return error.ConfigAccessDenied,
+            error.IsDir => return error.ConfigIsDirectory,
+            error.BadPathName => return error.ConfigInvalidPath,
+            else => return error.ConfigReadFailed,
+        }
+    };
 
     const cfg = try cli_config.parseConfig(allocator, config_raw, JsonProfile);
 

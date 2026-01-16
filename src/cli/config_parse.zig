@@ -43,9 +43,9 @@ pub fn parseConfig(
     config_raw: []const u8,
     comptime ProfileType: type,
 ) !JsonConfig(ProfileType) {
-    const parsed = try std.json.parseFromSlice(RawJsonConfig(ProfileType), allocator, config_raw, .{
+    const parsed = std.json.parseFromSlice(RawJsonConfig(ProfileType), allocator, config_raw, .{
         .ignore_unknown_fields = true,
-    });
+    }) catch return error.InvalidConfig;
     const raw = parsed.value;
 
     return .{

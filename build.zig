@@ -67,6 +67,7 @@ pub fn build(b: *std.Build) void {
             .{ .name = "cli_args", .module = b.createModule(.{ .root_source_file = b.path("src/cli/args.zig"), .target = target, .optimize = optimize }) },
             .{ .name = "cli_command", .module = b.createModule(.{ .root_source_file = b.path("src/cli/command.zig"), .target = target, .optimize = optimize }) },
             .{ .name = "cli_config", .module = b.createModule(.{ .root_source_file = b.path("src/cli/config_parse.zig"), .target = target, .optimize = optimize }) },
+            .{ .name = "cli_errors", .module = b.createModule(.{ .root_source_file = b.path("src/cli/errors.zig"), .target = target, .optimize = optimize }) },
         },
         .target = target,
         .optimize = optimize,
